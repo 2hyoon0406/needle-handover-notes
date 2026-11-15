@@ -1,0 +1,1036 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지 연구. 문제 정의, 파지 상태와 행동 공간, 시뮬레이션 및 실제 로봇 실험 결과를 정리합니다.">
+      
+      
+        <meta name="author" content="Hakyun Lee">
+      
+      
+        <link rel="canonical" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/01-overview/">
+      
+      
+        <link rel="prev" href="../../">
+      
+      
+      
+        
+          <link rel="alternate" href="../../../posts/01-overview/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="ko">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>1. 연구 개요: 강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지 - 이학윤 — 연구 노트</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="이학윤 — 연구 노트">
+  <meta property="og:title" content="1. 연구 개요: 강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지">
+  <meta property="og:description" content="강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지 연구. 문제 정의, 파지 상태와 행동 공간, 시뮬레이션 및 실제 로봇 실험 결과를 정리합니다.">
+  <meta property="og:url" content="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/01-overview/">
+  <meta property="og:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="1. 연구 개요: 강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지">
+  <meta name="twitter:description" content="강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지 연구. 문제 정의, 파지 상태와 행동 공간, 시뮬레이션 및 실제 로봇 실험 결과를 정리합니다.">
+  <meta name="twitter:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../../" title="이학윤 — 연구 노트" class="md-header__button md-logo" aria-label="이학윤 — 연구 노트" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            이학윤 — 연구 노트
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              1. 연구 개요: 강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="언어설정">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../posts/01-overview/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="이학윤 — 연구 노트" class="md-nav__button md-logo" aria-label="이학윤 — 연구 노트" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    이학윤 — 연구 노트
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    홈
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시리즈: 강화학습 기반 봉합 바늘 Handover
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시리즈: 강화학습 기반 봉합 바늘 Handover
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 개요
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        양손 물체 전달에서의 파지 위치와 방향 선택
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        봉합 과정의 바늘 재파지
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        재파지 계획에 강화학습을 적용한 이유
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시스템 구성과 강화학습 문제 정의
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kroc-2023-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        초기 정책의 시뮬레이션 평가 (KRoC, 2023년 2월)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dqn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DQN 기반 재파지 정책과 실제 로봇 검증
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시리즈 구성
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        논문·발표
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        양손 물체 전달에서의 파지 위치와 방향 선택
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        봉합 과정의 바늘 재파지
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        재파지 계획에 강화학습을 적용한 이유
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시스템 구성과 강화학습 문제 정의
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kroc-2023-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        초기 정책의 시뮬레이션 평가 (KRoC, 2023년 2월)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dqn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DQN 기반 재파지 정책과 실제 로봇 검증
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시리즈 구성
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        논문·발표
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">연구 개요: 강화학습 기반 양팔 수술 로봇의 봉합 바늘 재파지<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p class="post-meta">시리즈: 강화학습 기반 봉합 바늘 Handover · 13편 중 1편 · 2022년 9월~2023년 12월 작업</p>
+
+<p>석사과정에서 양팔 수술 로봇의 봉합 바늘 재파지(regrasping)를 위한 강화학습 알고리즘을 개발했습니다. 한쪽 기구에서 반대쪽 기구로 바늘을 전달하는 handover를 반복해 목표 파지 위치와 방향에 도달하되, 전달 횟수를 최소화하는 것이 목표였습니다. 최종 정책은 시뮬레이션에서 handover 3번 이내로 목표 자세에 도달했습니다. 실제 양팔 로봇에서는 캘리브레이션과 RGBD 카메라 기반 바늘 추적을 적용해 성공률을 0%에서 69%까지 끌어올렸습니다. 이 글에서는 이 문제가 왜 중요한지, 강화학습(RL) 문제로 어떻게 바꿨는지, 결과가 어땠는지를 정리합니다. 이후 글에서는 각 부분의 구현 과정과 해결하기 어려웠던 문제를 다룹니다.</p>
+<h2 id="_2">양손 물체 전달에서의 파지 위치와 방향 선택<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>오른손으로 글씨를 쓰려는데 펜이 왼손 가까이에 있다고 해 보겠습니다. 왼손으로 펜을 집어 오른손에 넘길 때는 오른손이 받아서 바로 쓸 수 있도록 잡을 위치와 방향을 맞춥니다.</p>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/pen-handover.jpg" preload="metadata">
+  <source src="../../../assets/video/pen-handover.mp4" type="video/mp4">
+</video>
+<figcaption>왼손이 초록색 지점을 잡아서, 오른손이 빨간색 목표 지점을 편하게 잡도록 넘겨줍니다. 잡을 위치와 넘겨줄 방향을 자연스럽게 맞추는 동작입니다.</figcaption>
+</figure>
+<p>이 짧은 동작 안에는 <strong>처음에 어디를 잡을지</strong>, <strong>어떤 방향으로 넘길지</strong>라는 두 가지 판단이 들어 있습니다. 이 프로젝트에서는 로봇도 봉합 바늘의 파지 위치와 전달 방향을 스스로 선택하도록 했습니다.</p>
+<h2 id="_3">봉합 과정의 바늘 재파지<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>실제 봉합에서는 바늘을 수시로 다시 잡습니다. 니들 드라이버가 바늘 호의 알맞은 지점을 알맞은 각도로 물고 있어야 조직에 바늘을 제대로 넣을 수 있기 때문입니다. 잡은 자세가 안 좋으면 반대쪽 기구로 바늘을 넘겼다가 더 좋은 자세로 다시 받아 옵니다.</p>
+<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/NyS8g_5iT1Q" title="바늘 handover가 포함된 봉합 (YouTube)" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/crMKcJMpfZ4" title="봉합 중 바늘 파지 (YouTube)" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+<p class="post-meta">YouTube 영상을 임베드했습니다. 저작권은 원 제작자에게 있습니다.</p>
+
+<p>바늘을 어떻게 잡아야 하는지는 수술 교육 자료에 잘 나와 있습니다.</p>
+<div class="figrow">
+<p><img alt="바늘을 jaw에 수직으로 잡는 것이 올바르고, 기울여 잡으면 안 됩니다" src="../../../assets/img/01/grasp-angle-reference.jpg" />
+<img alt="바늘은 꼬리 쪽에서 호의 1/2~1/3 사이를 잡습니다" src="../../../assets/img/01/grasp-point-reference.png" /></p>
+</div>
+<figcaption>봉합할 때의 파지 방향(왼쪽)과 파지 지점(오른쪽). 설명을 위해
+<a href="https://plasticsurgery.stanford.edu/education/microsurgery/suturing.html">Stanford Plastic Surgery — Microsurgery: Suturing</a>과
+<a href="https://www.olympusprofed.com/wp-content/uploads/2022/03/Grasping-the-needle.png">Olympus Professional Education — Grasping the needle</a>의 그림을 가져왔습니다. 모든 권리는 원저작자에게 있습니다.</figcaption>
+
+<p>봉합은 수술 중 반복이 많고 시간이 오래 걸리는 작업이어서 자동화가 필요한 작업 중 하나입니다. 바늘을 원하는 위치에 삽입하려면 먼저 올바른 자세로 잡아야 하므로, handover도 함께 해결해야 합니다.</p>
+<h2 id="_4">재파지 계획에 강화학습을 적용한 이유<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>테이블 위의 바늘은 어떤 자세로든 놓일 수 있습니다. 자세마다 어느 팔로 어느 지점을 먼저 잡아야 handover를 가장 적게 하고 목표 자세까지 갈 수 있을까요? 이걸 해석적으로 풀려면 여러 기하학적·기구학적 조건을 고려해야 하고, 로봇이나 작업공간, 목표가 바뀔 때마다 처음부터 다시 따져야 합니다.</p>
+<p>강화학습은 접근 방식이 다릅니다. 규칙을 하나하나 짜는 대신 로봇이 무엇을 관찰하고 무엇을 할 수 있는지를 정해 주고, handover마다 비용을 매깁니다. 그러면 로봇이 시행착오를 거쳐 목표 자세까지 가는 가장 짧은 경로를 스스로 찾습니다. 처음에는 단순한 off-policy 알고리즘인 <strong>Q-learning</strong>을 썼습니다. off-policy라는 건 로봇이 직접 만들지 않은 데이터, 예를 들어 사람의 시연으로도 학습할 수 있다는 뜻입니다. 향후 사람의 시연을 활용할 가능성을 고려해 이 특성에 주목했습니다.</p>
+<h2 id="_5">시스템 구성과 강화학습 문제 정의<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>로봇은 <a href="https://github.com/jhu-dvrk/sawIntuitiveResearchKit">da Vinci Research Kit(dVRK)</a>의 patient-side manipulator 두 대(PSM1, PSM2)를 썼고, 시뮬레이션은 <a href="https://www.coppeliarobotics.com/">CoppeliaSim</a>에서 했습니다.</p>
+<figure>
+<p><img alt="CoppeliaSim의 dVRK 양팔" src="../../../assets/img/01/dvrk-coppeliasim.png" width="560" /></p>
+<figcaption>CoppeliaSim에 구성한 dVRK 장면. 초록색과 노란색 기구가 각각 로봇의 왼손과 오른손입니다.</figcaption>
+</figure>
+<p>RL 문제를 간단히 정리하면 아래와 같습니다(자세한 건 2편에서 다룹니다).</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>정의</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>State</strong></td>
+<td>바늘을 어떻게 잡고 있는지: 호 위의 파지 지점 × jaw의 파지 각도 × 어느 손</td>
+</tr>
+<tr>
+<td><strong>Action</strong></td>
+<td>다음 state(지점, 각도, 손)와 handover할 때의 바늘 방향</td>
+</tr>
+<tr>
+<td><strong>Reward</strong></td>
+<td>목표 자세에 도달할 때까지 step마다 −1</td>
+</tr>
+<tr>
+<td><strong>Episode</strong></td>
+<td>바늘이 테이블 위에 랜덤 자세로 생성되고, 목표 자세로 잡으면 끝</td>
+</tr>
+</tbody>
+</table>
+<p>step마다 −1을 받으니, 보상을 최대로 하는 정책이 곧 handover를 가장 적게 하는 정책입니다.</p>
+<p>전체 흐름은 이렇습니다.</p>
+<pre class="mermaid"><code>flowchart LR
+    A[바늘이 랜덤 자세로&lt;br/&gt;생성] --&gt; B[IK: 각 팔이 닿는&lt;br/&gt;grasp는?]
+    B --&gt; C[닿는 grasp 중&lt;br/&gt;첫 grasp 선택]
+    C --&gt; D[정책이 다음 grasp와&lt;br/&gt;handover 방향 선택]
+    D --&gt; E{목표 자세&lt;br/&gt;도달?}
+    E -- 아니오 --&gt; B
+    E -- 예 --&gt; F[종료]</code></pre>
+<p>이때는 역기구학(IK)으로 로봇이 해당 자세에 도달할 수 있는지 확인해야 합니다. 이 검사가 없으면 에이전트가 로봇으로 실행할 수 없는 handover를 선택할 수 있습니다. 이 부분은 3편에서 다룹니다.</p>
+<h2 id="kroc-2023-2">초기 정책의 시뮬레이션 평가 (KRoC, 2023년 2월)<a class="headerlink" href="#kroc-2023-2" title="Permanent link">&para;</a></h2>
+<p>학습한 정책을 CoppeliaSim에서 돌려 본 영상입니다. 바늘이 테이블 위에 랜덤 자세로 생기고, 두 팔이 목표 자세가 될 때까지 바늘을 주고받습니다.</p>
+<figure>
+<video controls="controls" muted="muted" playsinline="playsinline" poster="../../../assets/video/coppeliasim-handover-demo.jpg" preload="metadata">
+  <source src="../../../assets/video/coppeliasim-handover-demo.mp4" type="video/mp4">
+</video>
+<figcaption>시뮬레이션 dVRK에서 돌린 handover 정책(CoppeliaSim 화면 녹화).</figcaption>
+</figure>
+<p>KRoC 2023에서 발표한 결과는 이렇습니다.</p>
+<ul>
+<li>목표 자세까지 <strong>handover는 0~3번</strong>이면 됐습니다. 0번은 목표 지점이 처음부터 손에 닿는 위치라 바로 잡은 경우입니다.</li>
+<li>코드를 최적화하고 나니 <strong>학습이 몇 분</strong> 만에 끝났습니다. 처음 100만 에피소드로 수렴시켰을 때는 17시간쯤 걸렸는데, 이걸 어떻게 줄였는지는 4편에 정리했습니다.</li>
+<li><strong>최대 Q값이 같은 action이 많았습니다.</strong> 어떤 state에서는 최적 action이 16개나 동점이었습니다.</li>
+</ul>
+<figure>
+<p><img alt="state별 최적 action 개수" src="../../../assets/img/01/optimal-actions-per-state.png" width="520" /></p>
+<figcaption>state별로 최대 Q값이 같은 action의 개수. 동점이 많다는 건 문제에 제약이 부족하다는 뜻입니다.</figcaption>
+</figure>
+<p>동점이 많은 이유를 살펴보면서 보상 설계에 빠진 조건을 찾을 수 있었습니다. 제약이 거의 없는 공간에서 학습했기 때문에 서로 다른 자세도 같은 보상을 받았습니다. 그래서 2023년 초에는 실제 제약(관절 한계까지 남은 여유, 두 팔이 서로 엇갈리지 않기)을 넣어 동점을 없애는 작업을 했습니다(7편).</p>
+<h2 id="dqn">DQN 기반 재파지 정책과 실제 로봇 검증<a class="headerlink" href="#dqn" title="Permanent link">&para;</a></h2>
+<p>2023년 한 해 동안 tabular Q-learning을 작은 Deep Q-Network(DQN)로 바꿨고, 보상에 관절 한계 여유와 두 팔 교차 패널티를 넣었습니다. 실험 플랫폼도 dVRK에서 직접 실험할 수 있는 로봇으로 옮겼습니다.</p>
+<p><strong>시뮬레이션.</strong> 최종 DQN은 학습에 3분 정도 걸립니다(RTX 3070, 10,000 에피소드). 랜덤 바늘 자세 100,000개로 테스트해 보니 41%는 handover 1번, 30%는 2번이면 됐고, 3번이 필요한 경우는 9건밖에 없었습니다.</p>
+<div class="figrow">
+<p><img alt="10,000 에피소드 동안의 DQN 학습 보상" src="../../../assets/img/02/dqn-learning-curve.png" />
+<img alt="랜덤 바늘 자세 100,000개에서 필요한 handover 횟수" src="../../../assets/img/01/dqn-100k-test.png" /></p>
+</div>
+<figcaption>왼쪽: DQN 학습 중 에피소드 보상. 오른쪽: 랜덤 바늘 자세 100,000개에서 목표 자세까지 필요했던 handover 횟수.</figcaption>
+
+<p><strong>실제 로봇.</strong> 하드웨어 실험용으로 Franka Emika Panda 두 대에 수술 도구를 직접 만들어 달았습니다. slit(노치) 구조로 휘는 관절이 있는 2자유도 케이블 구동 도구입니다. 수술 로봇에 필요한 원격 회전 중심(RCM)은 기구 설계가 아니라 제어로 구현했습니다. 테이블 위에는 Zivid 2 RGBD 카메라를 설치했습니다. 9자유도 중 도구의 2자유도만 케이블로 움직이기 때문에, 모든 관절을 케이블로 구동하는 dVRK보다 히스테리시스가 훨씬 작습니다. 그만큼 비전으로 팔을 보정하는 데 드는 시간이 줄고 전체 동작도 빨라집니다.</p>
+<div class="figrow">
+<p><img alt="직접 만든 slit 관절 수술 도구를 단 Panda" src="../../../assets/img/01/surgical-robot-platform.jpg" />
+<img alt="광학 테이블 위의 양팔 Panda 수술 로봇" src="../../../assets/img/01/real-experiment-setup.jpg" /></p>
+</div>
+<figcaption>왼쪽: 플랫폼의 한쪽 팔(Panda + 2자유도 수술 도구). 오른쪽: 정밀 광학 테이블 위에 설치한 양팔 구성.</figcaption>
+
+<figure>
+<p><img alt="직접 만든 수술 도구 사이로 봉합 바늘을 넘기는 두 대의 Panda" src="../../../assets/img/01/real-robot-handover-hero.jpg" /></p>
+<figcaption>실제 플랫폼에서 handover하는 장면. 왼쪽 도구가 오른쪽 도구에게서 바늘을 받으려는 순간입니다.</figcaption>
+</figure>
+<figure>
+<p><img alt="수술 도구의 케이블 배치, slit 관절, jaw" src="../../../assets/img/01/slit-joint-tool.png" width="640" /></p>
+<figcaption>직접 만든 수술 도구. 모터 3개로 jaw 두 개를 따로 움직이고 slit 관절을 굽힙니다. jaw 케이블을 교차시켜서 관절이 굽어도 케이블 길이가 변하지 않게 했습니다.</figcaption>
+</figure>
+<p><strong>제어로 만든 원격 회전 중심.</strong> RCM을 소프트웨어로 구현했기 때문에 환자와 포트 위치에 맞춰 회전 중심을 원하는 곳에 둘 수 있습니다. 역기구학은 두 단계로 풉니다(도구 관절을 먼저 풀고 그다음 Panda). 한 번 푸는 데 14–32 ms, 1,000번 평균 19.38 ms가 걸렸습니다. 검증은 이렇게 했습니다. 랜덤 관절값으로 순기구학을 계산하고, 그 자세로 역기구학을 푼 다음, 얻은 해를 다시 순기구학에 넣어 원래 자세와 같은지 확인했습니다. 유도 과정은 9편에서 다룹니다.</p>
+<div class="figrow">
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/rcm-test-1.jpg" preload="metadata">
+  <source src="../../../assets/video/rcm-test-1.mp4" type="video/mp4">
+</video>
+<figcaption>RCM 테스트: 복벽 대신 골판지에 뚫은 구멍을 축으로 도구가 회전합니다.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/rcm-test-2.jpg" preload="metadata">
+  <source src="../../../assets/video/rcm-test-2.mp4" type="video/mp4">
+</video>
+<figcaption>골판지 포트로 한 두 번째 RCM 테스트.</figcaption>
+</figure>
+</div>
+<p><strong>궤적 계획과 실행.</strong> 모든 동작은 RCM을 기준으로 task space에서 계획합니다. 관절 공간에서 보간하면 waypoint 사이에서 샤프트가 회전 중심을 벗어나기 때문입니다. 샘플링한 자세마다 RCM 역기구학을 풀고, 가상 waypoint 두 개를 추가한 cubic spline으로 관절 궤적의 위치·속도·가속도를 계산합니다. 그래서 모든 동작이 속도와 가속도 0에서 출발해 속도와 가속도 0으로 멈춥니다. 플래너, spline 유도, libfranka를 쓰면서 배운 것들은 10편에 정리했습니다.</p>
+<figure>
+<p><img alt="Cubic spline 관절 궤적: 위치, 속도, 가속도" src="../../../assets/img/10/spline-1.png" /></p>
+<figcaption>계획된 동작 하나에서 관절 하나의 궤적. 속도(가운데)와 가속도(아래)가 시작과 끝에서 모두 0이고, 0.618 s와 3.613 s에 있는 knot가 가상 waypoint 두 개입니다.</figcaption>
+</figure>
+<p>실제 로봇으로 처음 시도했을 때는 전부 실패했습니다. Panda 도구 끝의 위치 오차가 9 mm쯤 됐는데, 지름이 20 mm 남짓한 바늘을 잡기에는 너무 컸습니다. 결과를 바꾼 건 두 가지였습니다.</p>
+<ol>
+<li><strong>캘리브레이션.</strong> 광학 테이블 위에 컬러 볼 마커를 놓고 카메라를 캘리브레이션했습니다(평균 오차 0.3 mm, 0.48°). 그 카메라로 Panda의 관절 오차를 재서 보정했더니 평균 위치 오차가 8.9 mm에서 1.2 mm로 줄었습니다.</li>
+<li><strong>바늘 자세 재추정.</strong> 바늘을 잡기 전마다 카메라로 바늘 자세를 다시 추정했습니다(색 분할, 포인트 클라우드, PCA, 원 피팅). 덕분에 앞선 handover에서 조금씩 미끄러진 오차가 쌓이지 않았습니다.</li>
+</ol>
+<p>캘리브레이션 효과가 이렇게 컸던 데는 이유가 있습니다. 일부 관절은 엔코더 값과 실제 각도가 최대 5° 가까이 차이 났는데, 팔 길이가 60 cm면 5°만 틀어져도 도구 끝이 1.5 cm쯤 옮겨 갑니다. 다행히 산업용 로봇은 반복 정밀도가 높아서 오차가 매번 거의 똑같았습니다. 그래서 60개 자세에서 잰 평균으로 보정하는 것만으로 오차 대부분을 없앨 수 있었습니다.</p>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/camera-calibration-marker.jpg" preload="metadata">
+  <source src="../../../assets/video/camera-calibration-marker.mp4" type="video/mp4">
+</video>
+<figcaption>카메라 캘리브레이션: 3색 볼 마커를 광학 테이블의 정해진 구멍으로 옮겨 가며 RGBD 카메라로 찍습니다.</figcaption>
+</figure>
+<div class="figrow">
+<p><img alt="캘리브레이션 전 컬러 마커를 단 Panda" src="../../../assets/img/01/panda-before-calibration.jpg" />
+<img alt="캘리브레이션 후 컬러 마커를 단 Panda" src="../../../assets/img/01/panda-after-calibration.jpg" /></p>
+</div>
+<figcaption>같은 자세를 명령했을 때 관절 오프셋 보정 전(왼쪽)과 후(오른쪽). 보정 전에는 마커가 목표 구멍에서 눈에 띄게 벗어나 있습니다.</figcaption>
+
+<figure>
+<p><img alt="60개 자세에서 측정한 Panda 7개 관절의 오차" src="../../../assets/img/01/panda-joint-error.png" /></p>
+<figcaption>60개 자세에서 잰 Panda 관절 7개의 오차. 1번과 3번 관절 오차가 크지만 일정해서 단순 평균 보정으로 충분했습니다.</figcaption>
+</figure>
+<p>바늘 자세 추정 결과를 제어에 반영하는 과정은 다음과 같습니다. handover 알고리즘이 목표 자세를 정하고, 로봇이 움직이고, 다음 단계로 넘어가기 전에 카메라가 바늘의 실제 위치를 잽니다.</p>
+<figure>
+<p><img alt="제어 루프: handover 알고리즘, 로봇, 최종 상태 확인, 비전 피드백" src="../../../assets/img/01/vision-control-loop.png" /></p>
+<figcaption>실제 로봇의 제어 루프. 카메라로 잰 바늘 자세(T<sub>current</sub>)로 다음 이동 명령을 고치면서, 최종 파지 자세가 될 때까지 반복합니다.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/real-random-needle-pose.jpg" preload="metadata">
+  <source src="../../../assets/video/real-random-needle-pose.mp4" type="video/mp4">
+</video>
+<figcaption>실험용 바늘은 테이블 위에 아무렇게나 놓았습니다. 검출하기 쉽게 두 가지 색을 칠해서 바늘 끝과 swage 쪽을 구분했습니다.</figcaption>
+</figure>
+<figure>
+<p><img alt="카메라로 추정한 자세로 바늘을 잡는 실제 로봇" src="../../../assets/img/01/real-needle-handover.jpg" width="560" /></p>
+<figcaption>RGBD 카메라로 추정한 바늘 자세를 보고 바늘을 잡는 실제 로봇.</figcaption>
+</figure>
+<figure>
+<p><img alt="handover 횟수별 성공률: 캘리브레이션 전, 후, 후+비전" src="../../../assets/img/01/real-success-rate.png" width="640" /></p>
+<figcaption>실제 로봇의 성공률. 빨강: 캘리브레이션 전(0%). 초록: 캘리브레이션 후. 파랑: 캘리브레이션 후 + 카메라로 바늘 자세 추정.</figcaption>
+</figure>
+<table>
+<thead>
+<tr>
+<th>조건</th>
+<th>handover 1회</th>
+<th>2회</th>
+<th>3회</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>캘리브레이션 전</td>
+<td>0%</td>
+<td>0%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>캘리브레이션 후</td>
+<td>51.3% (80회 시도)</td>
+<td>41.1% (90)</td>
+<td>40.0% (20)</td>
+</tr>
+<tr>
+<td>캘리브레이션 + 바늘 자세 추정</td>
+<td>73.9% (46)</td>
+<td>75.0% (12)</td>
+<td>55.9% (34)</td>
+</tr>
+</tbody>
+</table>
+<p>전체 성공률은 캘리브레이션 후 0%에서 약 45%로 올랐고, 비전 피드백을 추가한 뒤에는 약 69%가 됐습니다.</p>
+<p>아래 영상에서 비전 피드백에 따른 차이를 확인할 수 있습니다. 두 실험 모두 캘리브레이션을 마친 로봇이고, 오른쪽만 잡기 전에 카메라로 바늘을 다시 쟀습니다.</p>
+<div class="figrow">
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/real-without-vision-fail.jpg" preload="metadata">
+  <source src="../../../assets/video/real-without-vision-fail.mp4" type="video/mp4">
+</video>
+<figcaption>비전 피드백 없음: 파지 실패.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/real-with-vision-success.jpg" preload="metadata">
+  <source src="../../../assets/video/real-with-vision-success.mp4" type="video/mp4">
+</video>
+<figcaption>카메라로 추정한 바늘 자세를 반영한 경우: 파지 성공.</figcaption>
+</figure>
+</div>
+<p>2023년 11월에 한 다른 실험들입니다. 배경을 바꿔 보기도 하고, 실을 단 채로도 해 봤습니다.</p>
+<div class="figrow">
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/needle-pickup-cloth.jpg" preload="metadata">
+  <source src="../../../assets/video/needle-pickup-cloth.mp4" type="video/mp4">
+</video>
+<figcaption>천 위에 놓인 바늘 집기.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/pickup-and-handover.jpg" preload="metadata">
+  <source src="../../../assets/video/pickup-and-handover.mp4" type="video/mp4">
+</video>
+<figcaption>회색 천 위에서 바늘을 집은 다음 handover.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/handover-black-bg.jpg" preload="metadata">
+  <source src="../../../assets/video/handover-black-bg.mp4" type="video/mp4">
+</video>
+<figcaption>검은 배경에서 한 handover.</figcaption>
+</figure>
+<figure>
+<video controls="controls" loop="loop" muted="muted" playsinline="playsinline" poster="../../../assets/video/handover-with-thread.jpg" preload="metadata">
+  <source src="../../../assets/video/handover-with-thread.mp4" type="video/mp4">
+</video>
+<figcaption>봉합사를 단 채로 한 handover.</figcaption>
+</figure>
+</div>
+<p>학위논문 심사에서는 이 결과를 기존 연구와 비교했습니다. 기존 연구들은 이미 바늘을 잡은 상태에서 시작하기 때문에 전체 과정 중 일부 단계의 성공률을 측정합니다. 그래서 시뮬레이션 pick-and-place 성공률 91%에 Chiu et al.의 73.3%, Wilcox et al.의 96.7%를 각각 곱해 보면 66%, 88% 정도가 나옵니다. 이 연구의 성공률 69%는 테이블에 놓인 바늘을 집는 것부터 최대 세 번의 handover를 거쳐 최종 파지까지 전 과정을 다 포함한 성공률이고, handover 1번인 경우만 보면 73.9%였습니다. 실험 조건이 서로 달라서 순위를 매기기보다는 대략 어느 수준인지 가늠하는 정도의 비교입니다. 남은 실패는 대부분 테이블 위에 애매한 자세로 놓인 바늘을 처음 집을 때 나왔고, handover 횟수가 늘수록 오차가 쌓이는 문제도 여전히 남아 있었습니다. 하드웨어의 내구성 문제도 있었습니다. 9,000번쯤 반복해서 움직이고 나니 도구 케이블이 늘어나 장력이 완전히 풀려 버렸습니다.</p>
+<h2 id="_6">시리즈 구성<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>이 글</strong>: 동기와 개요</li>
+<li>봉합 바늘 재파지의 GridWorld MDP 모델링과 Q-learning</li>
+<li>dVRK 역기구학 기반 파지 도달 가능성 판정</li>
+<li>Q-learning 수렴 분석과 역기구학 벡터화: 학습 시간 17시간 → 5시간</li>
+<li>CoppeliaSim 재파지 시뮬레이션과 상태 가치 기반 초기 파지 선택</li>
+<li>Q-table에서 DQN으로: 최적 행동의 비유일성과 정책 경사법 비교</li>
+<li>보상 설계: 관절 한계 여유와 양팔 교차 패널티</li>
+<li>Panda 기반 수술 로봇 플랫폼: 케이블 구동 도구와 기구학 모델링</li>
+<li>원격 회전 중심(RCM) 제약을 만족하는 2단계 역기구학</li>
+<li>작업 공간 궤적 계획과 Franka 궤적 제어</li>
+<li>카메라 외부 파라미터 및 로봇 관절 오프셋 보정: 8.9 mm → 1.2 mm</li>
+<li>봉합 바늘 검출: UNet·색상 분할과 원 피팅</li>
+<li>스테레오·RGBD 기반 봉합 바늘 6D 자세 추정과 비주얼 서보잉</li>
+</ol>
+<h2 id="_7">논문·발표<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li>이학윤, 「봉합 자동화를 위한 수술용 바늘 최적지점 파지 강화학습 알고리즘」(<em>Optimal Handover of Surgical Needle Using Reinforcement Learning for Suturing Automation</em>), DGIST 로봇및기계전자공학과 석사학위논문, 2024. 지도교수 황민호, 공동지도교수 박상현.</li>
+<li>석사 학위논문 계획서, <em>Autonomous Bimanual Regrasping for Optimal Grasping of Surgical Needle</em>, DGIST, 2023. 학위논문의 주요 기여 네 가지를 이때 정리했습니다. 최적 지점 파지를 위한 handover 알고리즘, 수술 직전에 학습시킬 수 있을 만큼 빠른 강화학습 모델, 모터와 케이블을 같이 쓰는 하이브리드 수술 로봇 플랫폼, 범용 매니퓰레이터를 수술 로봇으로 바꿔 주는 도구.</li>
+<li>「봉합용 바늘의 최적 파지를 위한 Handover 자동화」, 한국로봇종합학술대회(KRoC 2023) 발표, 2023년 2월 17일, 세션 FC2-4.</li>
+</ul>
+<p>참고한 선행 연구: Chiu et al., "Bimanual Regrasping for Suture Needles using Reinforcement Learning for Rapid Motion Planning," ICRA 2021; Wilcox et al., "Learning to Localize, Grasp, and Hand Over Unmodified Surgical Needles," ICRA 2022.</p>
+<div class="series-nav">
+<p><strong>다음 글:</strong> 2. 재파지의 GridWorld MDP 모델링 →</p>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../../" class="md-footer__link md-footer__link--prev" aria-label="이전: 홈">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                홈
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2022–2026 Hakyun Lee
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.indexes", "navigation.footer", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
