@@ -1,0 +1,1216 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="파지 지점, 파지한 팔, 파지 각도로 state를 나누고, 양팔 로봇의 봉합 바늘 재파지 문제에 표 기반 Q-learning을 적용한 과정.">
+      
+      
+        <meta name="author" content="Hakyun Lee">
+      
+      
+        <link rel="canonical" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/02-gridworld-q-learning/">
+      
+      
+        <link rel="prev" href="../01-overview/">
+      
+      
+      
+        
+          <link rel="alternate" href="../../../posts/02-gridworld-q-learning/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="ko">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>2. Suture needle 최적점 파지를 위한 GridWorld 모델링과 Q-learning - 이학윤 — 연구 노트</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="이학윤 — 연구 노트">
+  <meta property="og:title" content="2. Suture needle 최적점 파지를 위한 GridWorld 모델링과 Q-learning">
+  <meta property="og:description" content="파지 지점, 파지한 팔, 파지 각도로 state를 나누고, 양팔 로봇의 봉합 바늘 재파지 문제에 표 기반 Q-learning을 적용한 과정.">
+  <meta property="og:url" content="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/02-gridworld-q-learning/">
+  <meta property="og:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="2. Suture needle 최적점 파지를 위한 GridWorld 모델링과 Q-learning">
+  <meta name="twitter:description" content="파지 지점, 파지한 팔, 파지 각도로 state를 나누고, 양팔 로봇의 봉합 바늘 재파지 문제에 표 기반 Q-learning을 적용한 과정.">
+  <meta name="twitter:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#suture-needle-gridworld-q-learning" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../../" title="이학윤 — 연구 노트" class="md-header__button md-logo" aria-label="이학윤 — 연구 노트" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            이학윤 — 연구 노트
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              2. Suture needle 최적점 파지를 위한 GridWorld 모델링과 Q-learning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="언어설정">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../posts/02-gridworld-q-learning/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="이학윤 — 연구 노트" class="md-nav__button md-logo" aria-label="이학윤 — 연구 노트" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    이학윤 — 연구 노트
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    홈
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시리즈: 강화학습 기반 봉합 바늘 Handover
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시리즈: 강화학습 기반 봉합 바늘 Handover
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. 최적점 파지를 위한 GridWorld와 Q-learning
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. 최적점 파지를 위한 GridWorld와 Q-learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#2-grid-world-3-grid-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2차원 Grid world에서 3차원 Grid world로
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        STATE 정의하기
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action 정의하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Action 정의하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#action_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        도달할 수 없는 action
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reward 정의하기
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK로 도달 가능한 파지 걸러 내기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IK로 도달 가능한 파지 걸러 내기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        파지 후보의 좌표계 계산
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ik_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK와 관절 가동 범위 검사
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        학습 루프 안에서의 흐름
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        남은 문제
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q-learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        첫 학습 결과
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        100만 에피소드 학습 결과
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#2-grid-world-3-grid-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2차원 Grid world에서 3차원 Grid world로
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        STATE 정의하기
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action 정의하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Action 정의하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#action_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        도달할 수 없는 action
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reward 정의하기
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK로 도달 가능한 파지 걸러 내기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IK로 도달 가능한 파지 걸러 내기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        파지 후보의 좌표계 계산
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ik_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK와 관절 가동 범위 검사
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        학습 루프 안에서의 흐름
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        남은 문제
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q-learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        첫 학습 결과
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        100만 에피소드 학습 결과
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="suture-needle-gridworld-q-learning">Suture needle 최적점 파지를 위한 GridWorld 모델링과 Q-learning<a class="headerlink" href="#suture-needle-gridworld-q-learning" title="Permanent link">&para;</a></h1>
+<p class="post-meta">시리즈: 강화학습 기반 봉합 바늘 Handover · 12편 중 2편</p>
+
+<p>이번 주에는 needle handover를 최적화하는 데 강화학습을 활용한 방법을 다룹니다.</p>
+<p>강화학습 모델을 잘 만들려면 state, action, reward를 어떻게 설계하느냐가 관건이었습니다. 제가 풀고자 한 문제는 '<strong>임의의 자세로 놓인 바늘을 최소한의 handover만 거쳐 최적의 자세로 파지한다</strong>'는 것이었는데, 다소 추상적으로 보이는 이 문제를 어떻게 모델링할지 꽤 오래 고민했습니다.</p>
+<p>실마리는 강화학습 입문서인 『바닥부터 배우는 강화 학습』(노승은, 영진닷컴)에서 얻었습니다. 책에서 Q-learning을 설명하면서 Grid world를 예제로 들었습니다. (제가 학위 과정을 밟던 때는 지금처럼 LLM이 발달하지 않아서, 필요한 내용은 책이나 논문에서 직접 찾아 공부하고 코드도 손으로 하나하나 짜야 했습니다.)
+고민하면서 책을 여러번 보던 중 양팔 로봇이 바늘을 주고받는 과정도 3차원 Grid world로 해석할 수 있겠다는 생각이 떠올랐습니다.</p>
+<h2 id="2-grid-world-3-grid-world">2차원 Grid world에서 3차원 Grid world로<a class="headerlink" href="#2-grid-world-3-grid-world" title="Permanent link">&para;</a></h2>
+<div class="figrow">
+<p><img alt="상하좌우로 한 칸씩 움직이는 2차원 Grid world" src="../../../assets/img/02/gridworld-2d-example.png" />
+<img alt="파지 state의 3차원 격자에서 목표로 바로 이동하는 action과 막힌 action" src="../../../assets/img/02/gridworld-3d-jump.png" /></p>
+</div>
+<figcaption>왼쪽은 책에 나오는 2차원 Grid world입니다. 에이전트(파란 점)는 상하좌우로 한 칸씩 움직이고, 벽(회색 칸)으로 가려 하면 제자리에 머뭅니다. 오른쪽은 제 문제를 옮긴 3차원 Grid world입니다. 점 하나가 파지 state 하나이고, 로봇 팔이 닿기만 하면 목표 파지(초록)로 바로 이동할 수 있습니다. 빨간 점선은 도달할 수 없는 action입니다.</figcaption>
+
+<p>책의 Grid world 예제에서 에이전트는 격자의 한 칸에 서 있고, 상하좌우 가운데 하나를 골라 한 칸씩 움직입니다. 벽이나 격자 밖으로 가려 하면 제자리에 머물고 reward가 깎입니다. 에이전트는 이런 경험을 반복하면서 목표 칸까지 가장 빨리 가는 경로를 배웁니다.</p>
+<p>저는 needle handover 문제를 3차원 격자로 옮겼습니다. 격자의 점 하나는 state이고, "어느 팔이(H) 바늘의 어느 지점을(G) 어떤 각도로(A)" 잡고 있는지 나타냅니다. action은 바늘을 넘긴 뒤의 파지 state, 즉 다음에 도착할 점을 고르는 것입니다. 그래서 Grid world처럼 한 칸씩 움직이는 대신, 로봇 팔이 닿기만 하면 바늘을 한 번 넘겨서 격자의 어느 점으로든 이동할 수 있습니다. 목표 파지로 바로 점프하는 것도 가능합니다.</p>
+<p>벽에 해당하는 것은 도달할 수 없는 파지입니다. 지금 잡고 있는 지점을 반대쪽 팔이 또 잡으려 하거나, 바늘을 잡고 있는 팔에게 넘기려 하거나, 역기구학(IK)이 풀리지 않아 팔이 닿지 않는 경우입니다. 이런 action을 고르면 Grid world에서 벽에 부딪혔을 때처럼 제자리에 머물고 감점됩니다. 결국 에이전트가 배우는 것은 <strong>바늘을 가장 적게 넘기면서 목표 파지에 도달하는 경로</strong>입니다.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>2차원 Grid world</th>
+<th>3차원 Grid world (needle handover)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td>격자 위의 칸 (x, y)</td>
+<td>파지 state (G, H, A)</td>
+</tr>
+<tr>
+<td>action</td>
+<td>상하좌우, 바로 옆 칸으로 이동</td>
+<td>다음 파지 state와 handover orientation, 도달 가능한 어느 점으로든 이동</td>
+</tr>
+<tr>
+<td>갈 수 없는 곳</td>
+<td>벽, 격자 밖</td>
+<td>같은 지점, 같은 팔, IK 실패</td>
+</tr>
+<tr>
+<td>갈 수 없는 곳을 고르면</td>
+<td>제자리, 감점</td>
+<td>제자리, 감점</td>
+</tr>
+<tr>
+<td>목표</td>
+<td>goal 칸 도착</td>
+<td>목표 파지 state 도착</td>
+</tr>
+</tbody>
+</table>
+<h2 id="state">STATE 정의하기<a class="headerlink" href="#state" title="Permanent link">&para;</a></h2>
+<p>위에서 간략하게 설명했던 state에 대해 자세히 설명해보겠습니다.
+파지 state는 <strong>G–H–A</strong>, 세 가지의 조합으로 나타냈습니다.</p>
+<ul>
+<li><strong>G · 파지 지점</strong> — 그리퍼가 바늘의 어느 지점을 잡았는지. 최종 모델은 <strong>반지름 20 mm 호 위, 30° 간격 다섯 곳 (G0–G4)</strong>입니다.
+  <span class="sub">처음에는 호를 따라 10° 간격으로 19곳을 뒀습니다. 하지만 지점이 너무 가까우면 바늘을 넘길 때 양쪽 그리퍼 끝이 부딪히기 쉽고(바늘은 생각보다 매우 작은데, 로봇 그리퍼는 작게 만들기 어렵습니다), 학습 시간만 길어져서 다섯 곳으로 줄였습니다.</span></li>
+<li><strong>H · 파지 팔</strong> — 바늘을 잡고 있는 팔. <strong>왼팔 0, 오른팔 1</strong>입니다.</li>
+<li><strong>A · 파지 각도</strong> — 그리퍼가 바늘을 무는 각도. <strong>네 가지</strong>로 제한했습니다.
+  <span class="sub">이유는 아래 그림 다음에 설명합니다.</span></li>
+</ul>
+<div class="figrow">
+<p><img alt="바늘 호 위의 파지 지점 G0~G4와 end-effector 좌표계" src="../../../assets/img/02/thesis-grasping-points.png" />
+<img alt="end-effector 좌표계의 네 가지 파지 방향" src="../../../assets/img/02/thesis-grasping-orientation.png" /></p>
+</div>
+<figcaption>왼쪽 그림은 바늘 좌표계(x<sup>n</sup>, y<sup>n</sup>)에 30° 간격으로 표시한 파지 지점 G0–G4입니다. 작은 좌표축은 각 지점에서의 그리퍼 좌표축입니다. 오른쪽 그림은 한 지점에서 바늘을 잡을 수 있는 네 방향(0–3)을 보여줍니다.</figcaption>
+
+<div class="figrow">
+<p><img alt="dVRK의 두 PSM 기구" src="../../../assets/img/02/psm-jaws.png" />
+<img alt="그리퍼 방향을 바꿔 바늘의 같은 지점을 잡은 모습" src="../../../assets/img/02/grasping-hand.png" /></p>
+</div>
+<figcaption>왼쪽은 바늘을 잡는 dVRK의 두 로봇 팔입니다. 오른쪽은 그리퍼 방향을 바꿔 같은 지점을 잡은 모습입니다. 그리퍼의 오른쪽 집게는 빨간색, 왼쪽 집게는 파란색으로 표시했습니다.</figcaption>
+
+<p>봉합 바늘은 그리퍼로 잡는 부분을 납작하게 깎아 둡니다(D컷). 비스듬히 물면 바늘이 흔들리기 때문에, 그리퍼가 항상 바늘 평면에 수직이라고 가정하고 파지 방향을 네 가지로 제한했습니다.</p>
+<p>처음에는 가능한 state가 19 × 2 × 4 = 152개였습니다. 파지 지점을 다섯 곳으로 줄인 뒤에는 5 × 2 × 4 = 40개가 됐습니다. 파지 지점, 팔, 각도를 각각 축으로 놓으면 아래처럼 3차원 격자가 됩니다.</p>
+<figure>
+<p><img alt="파지 지점, 팔, 각도로 나타낸 3차원 state 공간" src="../../../assets/img/02/gridworld-3d.png" width="520" /></p>
+<figcaption>점 하나가 파지 state 하나입니다. 가로축은 파지 지점(G0–G4), 깊이 축은 바늘을 잡은 팔(L: 왼팔, R: 오른팔), 세로축은 파지 각도(0–3)이고, 왼팔은 파란색, 오른팔은 빨간색으로 표시했습니다.</figcaption>
+</figure>
+<h2 id="action">Action 정의하기<a class="headerlink" href="#action" title="Permanent link">&para;</a></h2>
+<p>action은 <strong>바늘을 넘긴 뒤의 파지 state</strong>를 고르는 것으로 정의했습니다. action 하나에는 네 가지가 들어 있습니다.</p>
+<ul>
+<li>바늘을 넘겨받을 팔 (H′)</li>
+<li>그 팔이 잡을 바늘의 파지 지점 (G′)</li>
+<li>그 지점을 무는 파지 각도 (A′)</li>
+<li>바늘을 넘기는 순간 바늘이 향하는 방향 (handover orientation)</li>
+</ul>
+<p>(G′, H′, A′)를 고르면 H′에 해당하는 팔이 G′ 지점을 A′ 각도로 잡고, 원래 잡고 있던 팔은 바늘을 놓습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>          <span class="c1"># action은 1..152</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">idx</span> <span class="o">=</span> <span class="n">action</span> <span class="o">-</span> <span class="mi">1</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">//</span> <span class="mi">8</span>             <span class="c1"># 파지 지점 0..18</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>       <span class="c1"># 팔: 0 = 왼팔, 1 = 오른팔</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">a</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">%</span> <span class="mi">4</span>              <span class="c1"># 파지 각도 0..3</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">a</span>
+</code></pre></div>
+<p><strong>handover orientation</strong>은 카메라 영상에서 바늘을 찾기 쉽도록 바늘 면이 카메라를 정면으로 향하게 했습니다. 이 조건에서 쓴 방향은 네 가지입니다. 바늘을 그대로 두거나 x·y·z축 가운데 하나를 기준으로 180° 돌렸습니다. 더 다양한 handover orientation을 가지고 시험도 해 봤지만, 목표에 도달하는 데 필요한 최소 전달 횟수는 같았습니다. 그래서 현실 공간에서 needle pose estimation에 용이한 네 가지 경우만 남겼습니다.</p>
+<div class="figrow">
+<p><img alt="좌표축으로 나타낸 네 가지 바늘 방향" src="../../../assets/img/02/thesis-handover-orientation.png" />
+<img alt="네 방향에 놓인 바늘의 모습" src="../../../assets/img/02/handover-orientations.png" /></p>
+</div>
+<figcaption>최종 모델에서 사용한 네 가지 방향입니다. 왼쪽 그림은 좌표축, 오른쪽 그림은 바늘의 모습입니다. 빨간 점은 바늘의 중심입니다.</figcaption>
+
+<p>파지 지점 5곳, 팔 2개, 파지 각도 4가지, 바늘 방향 4가지를 조합하면 action은 160개입니다.</p>
+<h3 id="action_1">도달할 수 없는 action<a class="headerlink" href="#action_1" title="Permanent link">&para;</a></h3>
+<p>앞에서 말한 벽, 즉 도달할 수 없는 action은 세 가지입니다.</p>
+<ol>
+<li><strong>같은 지점:</strong> 지금 잡고 있는 바늘 지점을 반대쪽 팔이 또 잡으려는 경우. 그리퍼 두 개가 한 지점을 동시에 물 수는 없습니다.</li>
+<li><strong>같은 팔:</strong> 지금 바늘을 잡고 있는 팔에게 넘기려는 경우. 자기 자신에게는 바늘을 넘길 수 없습니다.</li>
+<li><strong>IK 실패:</strong> 그 지점과 각도, handover orientation로는 로봇 팔이 닿지 않는 경우. 역기구학(IK)이 풀리지 않거나 관절 가동 범위를 벗어납니다.</li>
+</ol>
+<p>세 경우 모두 Grid world에서 벽에 부딪힌 것처럼 파지 state는 그대로 두고 reward를 깎습니다.</p>
+<p>Grid world의 벽은 맵에 고정돼 있지만, 여기서는 바늘이 놓인 위치와 자세, handover orientation에 따라 로봇 팔이 닿는 파지가 매번 달라집니다. 벽을 미리 그려 둘 수 없으니, action을 고를 때마다 역기구학으로 도달 가능한지 계산해야 합니다. 이 내용은 아래 IK 단락에서 다룹니다.</p>
+<h2 id="reward">Reward 정의하기<a class="headerlink" href="#reward" title="Permanent link">&para;</a></h2>
+<p>reward는 바늘을 가장 적게 넘기고 목표 파지에 도달하는 경로가 가장 큰 reward를 받도록 설계했습니다.</p>
+<ul>
+<li><strong>바늘을 한 번 넘길 때마다 −1</strong>
+  <span class="sub">reward를 최대로 만드는 정책이 곧 handover 횟수가 가장 적은 정책이 됩니다.</span></li>
+<li><strong>목표 파지 state에 도달하면 +10</strong></li>
+<li><strong>같은 지점을 다시 잡거나 같은 팔에게 넘기면 −10, 제자리</strong>
+  <span class="sub">IK를 풀어 볼 필요도 없이 애초에 말이 안 되는 수입니다. 이런 터무니없는 수는 에이전트가 고려할 필요조차 없기 때문에, 학습 초기 단계부터 아예 배제되도록 실제 handover 비용(−1)보다 훨씬 크게 감점했습니다.</span></li>
+<li><strong>IK가 풀리지 않는 파지를 고르면 −1, 제자리</strong>
+  <span class="sub">로봇 팔이 닿지 않아 바늘을 넘길 수 없는 경우입니다.</span></li>
+</ul>
+<p>관절이 가동 한계에서 멀수록 보너스를 주거나 두 팔이 엇갈릴 때 감점하는 항목도 나중에 추가했습니다. 자세한 내용은 추후에 다룹니다.</p>
+<h2 id="ik">IK로 도달 가능한 파지 걸러 내기<a class="headerlink" href="#ik" title="Permanent link">&para;</a></h2>
+<p>바늘이 어디에 놓였는지에 따라 어떤 지점은 작업 공간 밖에 있고, 어떤 지점은 관절 한계를 넘을 만큼 손목을 꺾어야 잡을 수 있습니다. 그래서 파지 후보마다 역기구학(IK)을 풀어, 실제로 잡을 수 있는 파지만 남기는 필터를 만들었습니다. 앞에서 말한 "벽"을 매번 계산하는 부분이 바로 이것입니다.</p>
+<h3 id="_1">파지 후보의 좌표계 계산<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>바늘은 테이블 위 0.7 × 0.5 m 영역 안의 무작위 위치에 평평하게 놓았습니다. 파지 후보 하나는 바늘 호 위의 한 점과 그 점에 붙은 그리퍼 좌표계입니다. 이 좌표계를 각 팔의 base 좌표계로 옮기는 변환은 다음과 같습니다.</p>
+<div class="arithmatex">\[
+T^{\text{PSM}_k}_{\text{grasp}} = T^{\text{PSM}_k}_{\text{table}} \; T^{\text{table}}_{\text{needle}} \; T^{\text{needle}}_{\text{grasp}}(g, a)
+\]</div>
+<ul>
+<li><strong><span class="arithmatex">\(T^{\text{table}}_{\text{needle}}\)</span></strong> — 무작위로 뽑은 바늘 자세</li>
+<li><strong><span class="arithmatex">\(T^{\text{needle}}_{\text{grasp}}(g, a)\)</span></strong> — 바늘 좌표계에서 본 파지 좌표계
+  <span class="sub">바늘 z축을 기준으로 파지 지점 <span class="arithmatex">\(g\)</span>까지 돌리고, 반지름만큼 이동한 다음, 파지 각도 <span class="arithmatex">\(a\)</span>를 적용합니다.</span></li>
+<li><strong><span class="arithmatex">\(T^{\text{PSM}_k}_{\text{table}}\)</span></strong> — 테이블에서 팔 <span class="arithmatex">\(k\)</span>까지의 고정 변환
+  <span class="sub">CoppeliaSim 장면에서 읽어 왔습니다.</span></li>
+</ul>
+<h3 id="ik_1">IK와 관절 가동 범위 검사<a class="headerlink" href="#ik_1" title="Permanent link">&para;</a></h3>
+<p>파지 좌표계마다 dVRK의 해석적 IK를 풀고, 관절이 하나라도 가동 범위를 벗어나면 그 파지는 버렸습니다.</p>
+<table>
+<thead>
+<tr>
+<th>관절</th>
+<th>가동 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1 (outer yaw)</td>
+<td>±60°</td>
+</tr>
+<tr>
+<td>J2 (outer pitch)</td>
+<td>±45°</td>
+</tr>
+<tr>
+<td>J3 (삽입, 직동)</td>
+<td>0.05 – 0.18 m</td>
+</tr>
+<tr>
+<td>J4 (roll)</td>
+<td>±180°</td>
+</tr>
+<tr>
+<td>J5 (wrist pitch)</td>
+<td>±90°</td>
+</tr>
+<tr>
+<td>J6 (wrist yaw)</td>
+<td>±90°</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_2">학습 루프 안에서의 흐름<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>IK 검사를 넣은 뒤 한 에피소드는 이렇게 진행됩니다.</p>
+<ol>
+<li>바늘을 무작위 자세로 놓습니다.</li>
+<li>IK로 잡을 수 있는 (지점, 팔, 각도) state를 찾습니다.</li>
+<li>그중 하나를 잡습니다.</li>
+<li>action을 고릅니다. 다음 파지 state와 handover orientation이 정해집니다.</li>
+<li>IK로 그 파지에 닿을 수 있는지 확인하고, 닿으면 바늘을 넘깁니다. 닿지 않으면 제자리에 머물고 reward를 깎습니다.</li>
+<li>목표 state면 끝내고, 아니면 4번으로 돌아갑니다.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">모든 파지가 불가능하다고 나오던 버그</p>
+<p>첫 버전은 파지 각도를 넣자마자 모든 파지를 도달 불가능하다고 판정했습니다. 원인은 두 가지였습니다. 변환 두 개를 곱하는 순서가 틀려서 IK에 넣기도 전에 파지 좌표계가 엉뚱한 곳에 가 있었고, 파지 지점을 도는 루프에서 각도를 줄이는 위치가 잘못돼 좌표계가 바늘 호를 벗어났습니다. 둘을 고치고 나서야 도달 가능한 파지가 제대로 나왔습니다.</p>
+</div>
+<h3 id="_3">남은 문제<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>IK 검사로 로봇이 실제로 닿는 범위를 학습에 반영할 수 있었지만, 두 가지 문제가 남았습니다.</p>
+<ul>
+<li><strong>학습 시간이 길어졌습니다.</strong>
+  <span class="sub">step마다 파지 후보 40개(지점 5 × 팔 2 × 각도 4)에 대해 IK를 풀어야 해서, step 하나에 4 ms쯤 걸렸습니다. 이 비용을 줄인 과정은 추후에 다룹니다.</span></li>
+<li><strong>state에 바늘의 처음 자세가 없습니다.</strong>
+  <span class="sub">에이전트는 다음에 어디를 잡을지는 배우지만 바늘 자세 자체는 보지 못합니다. 그래서 바늘이 어떻게 놓였을 때 어떤 파지로 시작해야 하는지는 배울 수 없었습니다. 이 한계를 보완한 방법도 추후에 다룹니다.</span></li>
+</ul>
+<h2 id="q-learning">Q-learning<a class="headerlink" href="#q-learning" title="Permanent link">&para;</a></h2>
+<p>state가 수십 개, action이 수백 개라 state와 action의 조합마다 Q값을 표에 저장할 수 있었습니다. Q값은 다음 식으로 갱신합니다.</p>
+<div class="arithmatex">\[
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \Big( R_{t+1} + \gamma \max_{a} Q(s_{t+1}, a) - Q(s_t, a_t) \Big)
+\]</div>
+<p>discount factor는 <strong>γ = 1</strong>로 뒀습니다. 목표에 도달하면 에피소드가 끝나므로 값이 발산하지 않습니다. discount factor가 없으면 바로 다음 handover든 몇 단계 뒤의 handover든 똑같이 −1로 계산되고, 어떤 state의 가치는 '목표까지 남은 handover 횟수 × (−1)'이 됩니다.</p>
+<p>Q-learning 코드는『바닥부터 배우는 강화 학습』의 Grid world Q-learning 예제 코드를 기반으로, state와 action, reward만 이 과제에 맞게 바꿨습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">random</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">QAgent</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_g</span><span class="o">=</span><span class="mi">19</span><span class="p">,</span> <span class="n">n_h</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_a</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_actions</span><span class="o">=</span><span class="mi">152</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_g</span><span class="p">,</span> <span class="n">n_h</span><span class="p">,</span> <span class="n">n_a</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">))</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">select_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>                  <span class="c1"># epsilon-greedy</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>            <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">]))</span> <span class="o">+</span> <span class="mi">1</span>     <span class="c1"># action은 1부터 시작</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_next</span><span class="p">):</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="n">a</span> <span class="o">-=</span> <span class="mi">1</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        <span class="n">target</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s_next</span><span class="p">])</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">a</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">a</span><span class="p">])</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">anneal_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">-</span> <span class="n">step</span><span class="p">,</span> <span class="n">floor</span><span class="p">)</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">episodes</span><span class="o">=</span><span class="mi">50_000</span><span class="p">):</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episodes</span><span class="p">):</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>        <span class="n">s</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(),</span> <span class="kc">False</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>            <span class="n">a</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">select_action</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>            <span class="n">s_next</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>            <span class="n">agent</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_next</span><span class="p">)</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>            <span class="n">s</span> <span class="o">=</span> <span class="n">s_next</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>        <span class="n">agent</span><span class="o">.</span><span class="n">anneal_eps</span><span class="p">()</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">예전 코드를 다시 보니</p>
+<p>발표 자료에서는 Q값이 가장 높은 action을 고를 때 <code>np.argmax(...)</code>의 결과를 그대로 반환했습니다. <code>argmax</code>는 0부터 세는데, 환경과 무작위 선택 코드는 action 번호를 1부터 매겼습니다. 그 결과 Q값을 보고 고른 action 번호가 하나씩 밀렸습니다. 위 코드에서는 <code>+ 1</code>로 번호를 맞췄습니다. </p>
+</div>
+<table>
+<thead>
+<tr>
+<th>하이퍼파라미터</th>
+<th>2022.09 (첫 학습)</th>
+<th>최종 표 기반 모델</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>α (학습률)</td>
+<td>0.1</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>γ (discount factor)</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ε 시작 → 하한</td>
+<td>0.9 → 0.1</td>
+<td>0.9 → 0.1</td>
+</tr>
+<tr>
+<td>ε 감소</td>
+<td>에피소드마다 −0.03</td>
+<td>에피소드마다 −1×10⁻⁶</td>
+</tr>
+<tr>
+<td>에피소드</td>
+<td>50,000 (설정값)</td>
+<td>1,000,000</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">첫 학습 결과<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>첫 실험에서는 매번 왼팔로 0번 지점을 0번 각도로 잡은 state에서 시작했습니다. 목표도 오른팔로 3번 지점을 0번 각도로 잡는 state 하나로 고정했습니다. 3만 에피소드를 돌리는 데 약 10분이 걸렸고, 에이전트는 바늘을 한 번 넘겨 목표에 도달하는 법을 배웠습니다.</p>
+<p>이 실험으로 학습 코드가 돌아가는 건 확인했습니다. 실제 로봇에 적용하려면 두 가지를 더 해결해야 했습니다.</p>
+<ol>
+<li><strong>시작 자세를 하나로 고정했습니다.</strong> 실제로는 바늘이 놓인 위치와 방향에 따라 각 팔이 닿을 수 있는 지점이 달라지고, 첫 파지도 달라집니다.</li>
+<li><strong>바늘을 넘길 수 있는 자세인지 검사하지 않았습니다.</strong> 원하는 지점에 원하는 각도로 닿으려면 관절이 가동 범위를 벗어나야 하는 경우도 있습니다. 그런 계획은 로봇에서 실행할 수 없습니다.</li>
+</ol>
+<p>두 문제를 해결하려고 학습 환경에 로봇의 기구학적 제약을 넣었습니다. 바늘이 처음 놓일 때와 넘길 때마다 파지 후보별로 역기구학(IK)을 풀어, 로봇 팔이 실제로 닿을 수 있는 자세만 허용했습니다. 바로 다음 단락에서 설명합니다.</p>
+<h2 id="100">100만 에피소드 학습 결과<a class="headerlink" href="#100" title="Permanent link">&para;</a></h2>
+<p>10월에는 state 40개와 action 160개로 구성한 모델에 역기구학 검사를 넣고, 무작위로 action을 고를 확률 ε도 훨씬 천천히 줄였습니다. Q-learning은 100만 에피소드 만에 수렴했습니다. 가능한 시작 state 40개에서 각각 목표까지 바늘을 몇 번 넘기는지 세어 보니, <strong>총 66번</strong>이었습니다.</p>
+<div class="figrow">
+<p><img alt="100만 회 학습 후 콘솔에 표시된 총 전달 횟수 66회와 학습 시간 1,064분" src="../../../assets/img/02/converged-policy-output.png" />
+<img alt="시작 state 40개에서 목표에 이르기까지의 파지 순서" src="../../../assets/img/02/policy-table-1M.png" /></p>
+</div>
+<figcaption>왼쪽은 100만 에피소드를 학습한 뒤의 콘솔 출력입니다. 학습에는 약 17.7시간이 걸렸습니다. 오른쪽 표는 시작 state별로 목표까지 어떤 파지를 거치는지 보여줍니다. 빨간 행은 시작 state가 이미 목표인 경우입니다.</figcaption>
+
+<p>추후에 ε를 얼마나 빠르게 줄일지 조정하고, 17시간 넘게 걸리던 학습 시간을 줄인 과정을 다룹니다.</p>
+<div class="series-nav">
+<p><strong>이전 글:</strong> <a href="../01-overview/">← 1. 개요</a> · <strong>다음 글:</strong> 3. Q-learning 수렴 분석 →</p>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../01-overview/" class="md-footer__link md-footer__link--prev" aria-label="이전: 1. 개요">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                1. 개요
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2022–2026 Hakyun Lee
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.indexes", "navigation.footer", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1215 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Splitting the grip into grasping point, grasping arm and grasping angle, and applying tabular Q-learning to the bimanual suture-needle regrasping problem.">
+      
+      
+        <meta name="author" content="Hakyun Lee">
+      
+      
+        <link rel="canonical" href="https://2hyoon0406.github.io/needle-handover-notes/posts/02-gridworld-q-learning/">
+      
+      
+        <link rel="prev" href="../01-overview/">
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../ko/posts/02-gridworld-q-learning/" hreflang="ko">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>2. GridWorld Modelling and Q-learning for Optimal-Point Grasping of a Suture Needle - Hakyun Lee — Research Notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Hakyun Lee — Research Notes">
+  <meta property="og:title" content="2. GridWorld Modelling and Q-learning for Optimal-Point Grasping of a Suture Needle">
+  <meta property="og:description" content="Splitting the grip into grasping point, grasping arm and grasping angle, and applying tabular Q-learning to the bimanual suture-needle regrasping problem.">
+  <meta property="og:url" content="https://2hyoon0406.github.io/needle-handover-notes/posts/02-gridworld-q-learning/">
+  <meta property="og:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="2. GridWorld Modelling and Q-learning for Optimal-Point Grasping of a Suture Needle">
+  <meta name="twitter:description" content="Splitting the grip into grasping point, grasping arm and grasping angle, and applying tabular Q-learning to the bimanual suture-needle regrasping problem.">
+  <meta name="twitter:image" content="https://2hyoon0406.github.io/needle-handover-notes/assets/img/social/og-default.jpg">
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gridworld-modelling-and-q-learning-for-optimal-point-grasping-of-a-suture-needle" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Hakyun Lee — Research Notes" class="md-header__button md-logo" aria-label="Hakyun Lee — Research Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hakyun Lee — Research Notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              2. GridWorld Modelling and Q-learning for Optimal-Point Grasping of a Suture Needle
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="deep-orange"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../ko/posts/02-gridworld-q-learning/" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Hakyun Lee — Research Notes" class="md-nav__button md-logo" aria-label="Hakyun Lee — Research Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    Hakyun Lee — Research Notes
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Series: Suture Needle Handover with RL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Series: Suture Needle Handover with RL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. GridWorld and Q-learning for optimal grasping
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. GridWorld and Q-learning for optimal grasping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#from-a-2d-grid-world-to-a-3d-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From a 2D grid world to a 3D one
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the action
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defining the action">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unreachable-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unreachable actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-reward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the reward
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filtering-reachable-grips-with-ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering reachable grips with IK
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filtering reachable grips with IK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grip-frames-for-each-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grip frames for each candidate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ik-and-joint-range-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK and joint range check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-an-episode-looks-like-with-the-ik-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What an episode looks like with the IK check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-was-still-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was still missing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q-learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-first-run-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the first run learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-after-a-million-episodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results after a million episodes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#from-a-2d-grid-world-to-a-3d-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From a 2D grid world to a 3D one
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the action
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defining the action">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unreachable-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unreachable actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-the-reward" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining the reward
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filtering-reachable-grips-with-ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering reachable grips with IK
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filtering reachable grips with IK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grip-frames-for-each-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grip frames for each candidate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ik-and-joint-range-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IK and joint range check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-an-episode-looks-like-with-the-ik-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What an episode looks like with the IK check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-was-still-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was still missing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q-learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-first-run-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the first run learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-after-a-million-episodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results after a million episodes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="gridworld-modelling-and-q-learning-for-optimal-point-grasping-of-a-suture-needle">GridWorld Modelling and Q-learning for Optimal-Point Grasping of a Suture Needle<a class="headerlink" href="#gridworld-modelling-and-q-learning-for-optimal-point-grasping-of-a-suture-needle" title="Permanent link">&para;</a></h1>
+<p class="post-meta">Series: Suture Needle Handover with RL · Part 2 of 12</p>
+
+<p>This week is about how I used reinforcement learning to optimise needle handover.</p>
+<p>The key to building a good reinforcement-learning model was how to design the state, action and reward. The problem I wanted to solve was "<strong>grasp a needle lying in an arbitrary pose in the best final pose, with as few handovers as possible</strong>". It sounds rather abstract, and I spent quite a while working out how to model it.</p>
+<p>The breakthrough came from an introductory RL textbook, <em>바닥부터 배우는 강화 학습</em> (Reinforcement Learning from the Ground Up, Seungeun Noh, Youngjin.com). It explains Q-learning with a grid world as the example. (When I was doing my degree, LLMs were nowhere near what they are today, so I had to dig what I needed out of books and papers and write every line of code by hand.)
+After going through the book several times, it struck me that two robot arms passing a needle back and forth could also be read as a 3D grid world.</p>
+<h2 id="from-a-2d-grid-world-to-a-3d-one">From a 2D grid world to a 3D one<a class="headerlink" href="#from-a-2d-grid-world-to-a-3d-one" title="Permanent link">&para;</a></h2>
+<div class="figrow">
+<p><img alt="A 2D grid world where the agent moves one cell up, down, left or right" src="../../assets/img/02/gridworld-2d-example.png" />
+<img alt="The 3D grid of grip states, with a direct jump to the target and blocked actions" src="../../assets/img/02/gridworld-3d-jump.png" /></p>
+</div>
+<figcaption>Left: the 2D grid world from the book. The agent (blue dot) moves one cell up, down, left or right, and stays put if it tries to walk into a wall (grey cells). Right: my problem moved onto a 3D grid world. Each point is one grip state, and as long as the robot arm can reach it, the agent can jump straight to the target grip (green). Red dashed lines are unreachable actions.</figcaption>
+
+<p>In the book's grid world, the agent stands on one cell of the grid and picks up, down, left or right to move one cell. If it tries to walk into a wall or off the grid, it stays where it is and loses some reward. Repeating this, the agent learns the quickest path to the goal cell.</p>
+<p>I moved the needle handover problem onto a 3D grid. Each point of the grid is a state: which arm (H) holds which point of the needle (G) at which angle (A). An action picks the grip state after the handover, i.e. the next point to land on. So instead of moving one cell at a time as in a grid world, the agent can reach any point of the grid with a single handover, as long as the robot arm can reach it. It can even jump straight to the target grip.</p>
+<p>The walls are unreachable grips: the other arm trying to grab the point that is already held, handing the needle to the arm that is already holding it, or a grip the arm cannot reach because inverse kinematics (IK) has no solution. Choosing one of these leaves the agent where it is and costs reward, just like bumping into a wall in a grid world. What the agent ends up learning is <strong>the path to the target grip with the fewest handovers</strong>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>2D grid world</th>
+<th>3D grid world (needle handover)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td>a cell (x, y)</td>
+<td>a grip state (G, H, A)</td>
+</tr>
+<tr>
+<td>action</td>
+<td>up/down/left/right, to the next cell</td>
+<td>next grip state and handover orientation; any reachable point</td>
+</tr>
+<tr>
+<td>Blocked</td>
+<td>walls, edge of the grid</td>
+<td>same point, same arm, IK failure</td>
+</tr>
+<tr>
+<td>Choosing a blocked move</td>
+<td>stay, penalty</td>
+<td>stay, penalty</td>
+</tr>
+<tr>
+<td>Goal</td>
+<td>reach the goal cell</td>
+<td>reach the target grip state</td>
+</tr>
+</tbody>
+</table>
+<h2 id="defining-the-state">Defining the state<a class="headerlink" href="#defining-the-state" title="Permanent link">&para;</a></h2>
+<p>Here is the state from above in more detail.
+A grip state is the combination of three values, <strong>G–H–A</strong>.</p>
+<ul>
+<li><strong>G · grasping point</strong> — where on the needle the gripper holds it. The final model uses <strong>five points 30° apart on a 20 mm-radius arc (G0–G4)</strong>.
+  <span class="sub">At first there were 19 points, 10° apart along the arc. But with points that close, the two gripper tips easily collide during a handover (the needle is far smaller than you would think, and a robot gripper is hard to make small), and training only takes longer, so I cut it down to five.</span></li>
+<li><strong>H · grasping arm</strong> — the arm holding the needle. <strong>Left arm 0, right arm 1.</strong></li>
+<li><strong>A · grasping angle</strong> — the angle at which the gripper bites the needle. Limited to <strong>four</strong>.
+  <span class="sub">The reason is explained after the figures below.</span></li>
+</ul>
+<div class="figrow">
+<p><img alt="Grasping points G0 to G4 on the needle arc with the end-effector frame" src="../../assets/img/02/thesis-grasping-points.png" />
+<img alt="Four grasping orientations of the end-effector frame" src="../../assets/img/02/thesis-grasping-orientation.png" /></p>
+</div>
+<figcaption>Left: grasping points G0–G4, 30° apart in the needle frame (x<sup>n</sup>, y<sup>n</sup>). The small frames are the gripper axes at each point. Right: the four directions (0–3) from which the needle can be grasped at one point.</figcaption>
+
+<div class="figrow">
+<p><img alt="The two PSM instruments of the dVRK" src="../../assets/img/02/psm-jaws.png" />
+<img alt="The same point on the needle grasped with the gripper turned" src="../../assets/img/02/grasping-hand.png" /></p>
+</div>
+<figcaption>Left: the two dVRK robot arms that hold the needle. Right: the same point grasped with the gripper turned. The gripper's right jaw is shown in red and its left jaw in blue.</figcaption>
+
+<p>Suture needles have the part meant for the gripper flattened (a D-cut). Gripping it at a slant makes the needle wobble, so I assumed the gripper is always perpendicular to the needle plane and limited the grasping directions to four.</p>
+<p>At first there were 19 × 2 × 4 = 152 possible states. With the grasping points cut to five, there were 5 × 2 × 4 = 40. Putting grasping point, arm and angle on separate axes gives the 3D grid below.</p>
+<figure>
+<p><img alt="The 3D state space of grasping point, arm and angle" src="../../assets/img/02/gridworld-3d.png" width="520" /></p>
+<figcaption>Each point is one grip state. The horizontal axis is the grasping point (G0–G4), the depth axis is the arm holding the needle (L: left, R: right) and the vertical axis is the grasping angle (0–3). Left-arm states are blue, right-arm states red.</figcaption>
+</figure>
+<h2 id="defining-the-action">Defining the action<a class="headerlink" href="#defining-the-action" title="Permanent link">&para;</a></h2>
+<p>An action is defined as choosing <strong>the grip state after the needle has been handed over</strong>. One action has four parts:</p>
+<ul>
+<li>the arm that receives the needle (H′)</li>
+<li>the point on the needle that arm grabs (G′)</li>
+<li>the grasping angle at that point (A′)</li>
+<li>the direction the needle faces at the moment of the handover (handover orientation)</li>
+</ul>
+<p>Choosing (G′, H′, A′) means arm H′ grabs point G′ at angle A′, and the arm that was holding the needle lets go.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>          <span class="c1"># action in 1..152</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">idx</span> <span class="o">=</span> <span class="n">action</span> <span class="o">-</span> <span class="mi">1</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">//</span> <span class="mi">8</span>             <span class="c1"># grasping point 0..18</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>       <span class="c1"># arm: 0 = left, 1 = right</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">a</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">%</span> <span class="mi">4</span>              <span class="c1"># grasping angle 0..3</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">a</span>
+</code></pre></div>
+<p>The <strong>handover orientation</strong> always keeps the needle plane facing the camera, so the needle is easy to find in the camera image. Under that condition four orientations are used: the needle as it is, or turned 180° about its x, y or z axis. I also tried a wider range of handover orientations, but the minimum number of handovers to reach the target stayed the same. So I kept only the four cases that make needle pose estimation easy in the real world.</p>
+<div class="figrow">
+<p><img alt="The four needle orientations drawn with axes" src="../../assets/img/02/thesis-handover-orientation.png" />
+<img alt="The needle in each of the four orientations" src="../../assets/img/02/handover-orientations.png" /></p>
+</div>
+<figcaption>The four orientations used in the final model, as axes (left) and as the needle itself (right). The red dot marks the centre of the needle.</figcaption>
+
+<p>Combining 5 grasping points, 2 arms, 4 grasping angles and 4 needle orientations gives 160 actions.</p>
+<h3 id="unreachable-actions">Unreachable actions<a class="headerlink" href="#unreachable-actions" title="Permanent link">&para;</a></h3>
+<p>The walls mentioned above, the unreachable actions, come in three kinds:</p>
+<ol>
+<li><strong>Same point:</strong> the other arm tries to grab the point of the needle that is already held. Two grippers cannot close on the same spot at once.</li>
+<li><strong>Same arm:</strong> handing the needle to the arm that is already holding it. An arm cannot hand the needle to itself.</li>
+<li><strong>IK fails:</strong> the robot arm cannot reach that point with that angle and handover orientation. Inverse kinematics (IK) has no solution, or the joints would leave their range.</li>
+</ol>
+<p>In all three cases, just like bumping into a wall in a grid world, the grip state stays as it is and reward is deducted.</p>
+<p>In a grid world the walls are fixed in the map, but here the grips the arms can reach change with where and how the needle lies and with the handover orientation. The walls cannot be drawn in advance, so every time an action is chosen, IK has to check whether it is reachable. That is covered in the IK section below.</p>
+<h2 id="defining-the-reward">Defining the reward<a class="headerlink" href="#defining-the-reward" title="Permanent link">&para;</a></h2>
+<p>The reward is designed so that the path reaching the target grip with the fewest handovers collects the most reward.</p>
+<ul>
+<li><strong>−1 for every handover</strong>
+  <span class="sub">The policy that maximises reward is then the policy with the fewest handovers.</span></li>
+<li><strong>+10 for reaching the target grip state</strong></li>
+<li><strong>−10 and stay in place for grabbing the same point again or handing to the same arm</strong>
+  <span class="sub">These moves are nonsense before any IK even needs solving. The agent should not have to consider such absurd moves at all, so they are penalised far more than a real handover (−1) to rule them out from the very start of training.</span></li>
+<li><strong>−1 and stay in place for choosing a grip where IK fails</strong>
+  <span class="sub">The robot arm cannot reach it, so the needle cannot be handed over.</span></li>
+</ul>
+<p>Later I also added terms such as a bonus for keeping the joints far from their limits and a penalty when the two arms cross. Those are covered in Part 6.</p>
+<h2 id="filtering-reachable-grips-with-ik">Filtering reachable grips with IK<a class="headerlink" href="#filtering-reachable-grips-with-ik" title="Permanent link">&para;</a></h2>
+<p>Depending on where the needle lies, some points are outside the workspace and some need the wrist bent past its joint limits. So I built a filter that solves inverse kinematics (IK) for every candidate grip and keeps only the ones the arm can actually make. This is the part that computes the "walls" mentioned above, every time.</p>
+<h3 id="grip-frames-for-each-candidate">Grip frames for each candidate<a class="headerlink" href="#grip-frames-for-each-candidate" title="Permanent link">&para;</a></h3>
+<p>The needle is placed flat at a random position inside a 0.7 × 0.5 m area of the table. A candidate grip is a point on the needle arc with a gripper frame attached to it. The transform that moves this frame into each arm's base frame is:</p>
+<div class="arithmatex">\[
+T^{\text{PSM}_k}_{\text{grasp}} = T^{\text{PSM}_k}_{\text{table}} \; T^{\text{table}}_{\text{needle}} \; T^{\text{needle}}_{\text{grasp}}(g, a)
+\]</div>
+<ul>
+<li><strong><span class="arithmatex">\(T^{\text{table}}_{\text{needle}}\)</span></strong> — the random needle pose</li>
+<li><strong><span class="arithmatex">\(T^{\text{needle}}_{\text{grasp}}(g, a)\)</span></strong> — the grip frame seen from the needle frame
+  <span class="sub">Rotate about the needle's z axis to grasping point <span class="arithmatex">\(g\)</span>, move out by the radius, then apply grasping angle <span class="arithmatex">\(a\)</span>.</span></li>
+<li><strong><span class="arithmatex">\(T^{\text{PSM}_k}_{\text{table}}\)</span></strong> — the fixed transform from the table to arm <span class="arithmatex">\(k\)</span>
+  <span class="sub">Read off the CoppeliaSim scene.</span></li>
+</ul>
+<h3 id="ik-and-joint-range-check">IK and joint range check<a class="headerlink" href="#ik-and-joint-range-check" title="Permanent link">&para;</a></h3>
+<p>For each grip frame I solved the dVRK's analytic IK and discarded the grip if any joint fell outside its range of motion.</p>
+<table>
+<thead>
+<tr>
+<th>Joint</th>
+<th>Range of motion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1 (outer yaw)</td>
+<td>±60°</td>
+</tr>
+<tr>
+<td>J2 (outer pitch)</td>
+<td>±45°</td>
+</tr>
+<tr>
+<td>J3 (insertion, prismatic)</td>
+<td>0.05 – 0.18 m</td>
+</tr>
+<tr>
+<td>J4 (roll)</td>
+<td>±180°</td>
+</tr>
+<tr>
+<td>J5 (wrist pitch)</td>
+<td>±90°</td>
+</tr>
+<tr>
+<td>J6 (wrist yaw)</td>
+<td>±90°</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-an-episode-looks-like-with-the-ik-check">What an episode looks like with the IK check<a class="headerlink" href="#what-an-episode-looks-like-with-the-ik-check" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Place the needle in a random pose.</li>
+<li>Use IK to find the (point, arm, angle) states that can be grasped.</li>
+<li>Grasp one of them.</li>
+<li>Choose an action, which sets the next grip state and the handover orientation.</li>
+<li>Check with IK whether that grip can be reached; if so, hand the needle over. If not, stay in place and lose reward.</li>
+<li>Stop at the target state; otherwise go back to step 4.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">When every grip looked unreachable</p>
+<p>The first version declared every grip unreachable as soon as the grasping angle was added. There were two causes. Two transforms were multiplied in the wrong order, so the grip frames were in the wrong place before IK ever saw them, and the loop over grasping points reduced the angle in the wrong place, so the frames drifted off the needle arc. Only after fixing both did sensible reachable grips come out.</p>
+</div>
+<h3 id="what-was-still-missing">What was still missing<a class="headerlink" href="#what-was-still-missing" title="Permanent link">&para;</a></h3>
+<p>The IK check brought the robot's real reach into training, but two problems remained.</p>
+<ul>
+<li><strong>Training got slower.</strong>
+  <span class="sub">Every step had to solve IK for 40 candidate grips (5 points × 2 arms × 4 angles), which took about 4 ms per step. How I cut that cost is covered in a later post.</span></li>
+<li><strong>The state does not include the needle's initial pose.</strong>
+  <span class="sub">The agent learns where to grab next, but never sees the needle pose itself, so it cannot learn which grip to start with for a given needle placement. How I worked around this is also covered later.</span></li>
+</ul>
+<h2 id="q-learning">Q-learning<a class="headerlink" href="#q-learning" title="Permanent link">&para;</a></h2>
+<p>With a few dozen states and a few hundred actions, a Q-value could be stored in a table for every state–action pair. Q-values are updated with:</p>
+<div class="arithmatex">\[
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \Big( R_{t+1} + \gamma \max_{a} Q(s_{t+1}, a) - Q(s_t, a_t) \Big)
+\]</div>
+<p>The discount factor is <strong>γ = 1</strong>. An episode ends when the target is reached, so the values do not diverge. Without a discount factor, the next handover and one several steps later both count as −1, and the value of a state becomes "the number of handovers left to the target × (−1)".</p>
+<p>The Q-learning code is based on the grid-world Q-learning example code from <em>바닥부터 배우는 강화 학습</em>, with only the state, action and reward changed to fit this task.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">random</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">QAgent</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_g</span><span class="o">=</span><span class="mi">19</span><span class="p">,</span> <span class="n">n_h</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_a</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_actions</span><span class="o">=</span><span class="mi">152</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_g</span><span class="p">,</span> <span class="n">n_h</span><span class="p">,</span> <span class="n">n_a</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">))</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">select_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>                  <span class="c1"># epsilon-greedy</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>            <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">]))</span> <span class="o">+</span> <span class="mi">1</span>     <span class="c1"># actions start at 1</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_next</span><span class="p">):</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="n">a</span> <span class="o">-=</span> <span class="mi">1</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        <span class="n">target</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s_next</span><span class="p">])</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">a</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">a</span><span class="p">])</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">anneal_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">-</span> <span class="n">step</span><span class="p">,</span> <span class="n">floor</span><span class="p">)</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">episodes</span><span class="o">=</span><span class="mi">50_000</span><span class="p">):</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episodes</span><span class="p">):</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>        <span class="n">s</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(),</span> <span class="kc">False</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>            <span class="n">a</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">select_action</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>            <span class="n">s_next</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>            <span class="n">agent</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_next</span><span class="p">)</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>            <span class="n">s</span> <span class="o">=</span> <span class="n">s_next</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>        <span class="n">agent</span><span class="o">.</span><span class="n">anneal_eps</span><span class="p">()</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Looking at the old code again</p>
+<p>In the presentation code, picking the action with the highest Q-value returned the result of <code>np.argmax(...)</code> directly. <code>argmax</code> counts from 0, but the environment and the random-choice code numbered actions from 1. As a result, the action chosen from the Q-values was off by one. The code above fixes the numbering with <code>+ 1</code>.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Hyperparameter</th>
+<th>Sep 2022 (first run)</th>
+<th>Final tabular model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>α (learning rate)</td>
+<td>0.1</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>γ (discount factor)</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ε start → floor</td>
+<td>0.9 → 0.1</td>
+<td>0.9 → 0.1</td>
+</tr>
+<tr>
+<td>ε decay</td>
+<td>−0.03 per episode</td>
+<td>−1×10⁻⁶ per episode</td>
+</tr>
+<tr>
+<td>Episodes</td>
+<td>50,000 (setting)</td>
+<td>1,000,000</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-the-first-run-learned">What the first run learned<a class="headerlink" href="#what-the-first-run-learned" title="Permanent link">&para;</a></h2>
+<p>In the first experiment every episode started from the same state: the left arm holding point 0 at angle 0. The target was also fixed to a single state: the right arm holding point 3 at angle 0. 30,000 episodes took about 10 minutes, and the agent learned to reach the target with a single handover.</p>
+<p>That confirmed the training code worked. To use it on a real robot, two more things had to be solved.</p>
+<ol>
+<li><strong>The start pose was fixed.</strong> In reality, the points each arm can reach depend on where and how the needle lies, and so does the first grip.</li>
+<li><strong>Nothing checked whether a handover pose was feasible.</strong> Reaching a given point at a given angle can require the joints to go beyond their range. A plan like that cannot be executed on the robot.</li>
+</ol>
+<p>To solve both, I put the robot's kinematic constraints into the training environment. When the needle is first placed and at every handover, IK is solved for each candidate grip, and only poses the robot arm can actually reach are allowed. The IK section above explains how.</p>
+<h2 id="results-after-a-million-episodes">Results after a million episodes<a class="headerlink" href="#results-after-a-million-episodes" title="Permanent link">&para;</a></h2>
+<p>In October I added the IK check to the model with 40 states and 160 actions, and decreased ε, the probability of picking a random action, much more slowly. Q-learning converged after a million episodes. Counting how many handovers it takes to reach the target from each of the 40 possible start states gave <strong>66 in total</strong>.</p>
+<div class="figrow">
+<p><img alt="Console output after a million training episodes, showing 66 total handovers and 1,064 minutes of training" src="../../assets/img/02/converged-policy-output.png" />
+<img alt="The grip sequence from each of the 40 start states to the target" src="../../assets/img/02/policy-table-1M.png" /></p>
+</div>
+<figcaption>Left: console output after training for a million episodes; training took about 17.7 hours. Right: the grips passed through from each start state to the target. Red rows are cases where the start state is already the target.</figcaption>
+
+<p>A later post covers how I tuned how fast ε decreases and cut the training time down from over 17 hours.</p>
+<div class="series-nav">
+<p><strong>Previous:</strong> <a href="../01-overview/">← 1. Overview</a> · <strong>Next:</strong> 3. Making Q-learning converge →</p>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../01-overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 1. Overview">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                1. Overview
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2022–2026 Hakyun Lee
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.indexes", "navigation.footer", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

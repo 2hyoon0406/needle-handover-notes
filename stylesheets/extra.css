@@ -1,0 +1,109 @@
+/* Typography: readable body text for Korean and English */
+:root {
+  --md-text-font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+  --md-code-font-family: "JetBrains Mono", Consolas, "D2Coding", monospace;
+}
+body, input { font-family: var(--md-text-font-family); }
+.md-typeset {
+  font-size: 0.9rem;           /* Material default 0.8rem is small for long reading */
+  line-height: 1.85;
+  letter-spacing: -0.005em;
+  word-break: keep-all;        /* Korean: break between words, not inside them */
+  overflow-wrap: break-word;
+}
+.md-content__inner { max-width: 44rem; margin-left: auto; margin-right: auto; padding-left: 0.8rem; padding-right: 0.8rem; }
+.md-typeset p, .md-typeset ul, .md-typeset ol { margin-bottom: 1.15em; }
+.md-typeset li { margin-bottom: 0.35em; }
+html:lang(ko) .md-content__inner,
+html:lang(ko) .md-content__inner figcaption,
+html:lang(ko) .md-content__inner table:not([class]) :is(th, td):not([align]) {
+  text-align: justify;
+}
+
+/* Headings: full-strength colour, clear hierarchy */
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-weight: 700; font-size: 1.85em; line-height: 1.35;
+  letter-spacing: -0.02em; margin-bottom: 0.6em;
+}
+.md-typeset h2 {
+  font-weight: 700; font-size: 1.35em; line-height: 1.4;
+  letter-spacing: -0.015em; margin-top: 2.4em;
+  padding-bottom: 0.35em; border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+.md-typeset h3 { font-weight: 600; font-size: 1.12em; margin-top: 1.8em; }
+.md-typeset strong { font-weight: 650; }
+
+/* Admonition boxes ("이 글에서 다루는 것" etc.): Material's default is too small */
+.md-typeset .admonition, .md-typeset details { font-size: 0.8rem; line-height: 1.7; }
+
+/* Tables and code: slightly smaller than body but not tiny */
+.md-typeset table:not([class]) { font-size: 0.8rem; line-height: 1.6; }
+.md-typeset code { font-size: 0.85em; }
+
+/* Figures and videos */
+.md-typeset figure { margin: 1.6em auto; }
+.md-typeset figure img,
+.md-typeset figure video { max-width: 100%; border-radius: 6px; }
+.md-typeset figure.dark-bg img { background: #000; }
+.md-typeset figcaption { font-size: 0.78rem; line-height: 1.65; font-style: normal; color: var(--md-default-fg-color--light); max-width: 46rem; margin: 0.6em auto 0; }
+.md-typeset video { display: block; margin: 0 auto; width: 100%; }
+
+/* Responsive YouTube embed */
+.yt { position: relative; width: 100%; aspect-ratio: 16 / 9; margin: 1.2em 0 0.4em; }
+.yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 6px; }
+
+/* Side-by-side figures */
+.figrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; align-items: center; }
+.figrow img { width: 100%; border-radius: 6px; }
+
+/* Post meta line */
+.post-meta { color: var(--md-default-fg-color--light); font-size: 0.78rem; margin-top: -0.4rem; margin-bottom: 2rem; }
+
+/* Series navigation box */
+.series-nav { border-left: 3px solid var(--md-accent-fg-color); padding: 0.4rem 0.9rem; margin: 2rem 0 0; font-size: 0.8rem; }
+/* Markdown wraps images in <p>; let each image become its own grid item */
+.figrow p { display: contents; }
+.figrow img { max-height: 340px; object-fit: contain; }
+.figrow video, .figrow figure { width: 100%; margin: 0; }
+.figrow video { border-radius: 6px; }
+.figrow figure figcaption { margin-top: .3rem; }
+
+/* Video rows: always two equal columns (2 or 2x2), tops aligned, same 16:9 frame */
+.figrow:has(> figure) { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 1.2rem 0.8rem; }
+.figrow > figure video { aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+@media (max-width: 600px) {
+  .figrow:has(> figure) { grid-template-columns: 1fr; }
+}
+
+/* Image rows: every picture sits in a white card of the same height, so
+   side-by-side figures line up and diagrams with transparent or white
+   backgrounds stay readable in dark mode. */
+.figrow:not(:has(> figure)) { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: stretch; gap: 0.8rem; }
+.figrow img {
+  width: 100%; height: 280px; max-height: none;
+  object-fit: contain; background: #fff;
+  padding: 10px; box-sizing: border-box;
+  border-radius: 8px; border: 1px solid var(--md-default-fg-color--lightest);
+}
+@media (max-width: 600px) { .figrow img { height: auto; max-height: 360px; } }
+
+/* Single figures with a light background get the same white card */
+.md-typeset figure:not(.dark-bg) img { background: #fff; }
+
+/* Lists: left-aligned (justify opens wide gaps in short Korean lines) */
+html:lang(ko) .md-typeset li { text-align: left; }
+
+/* Key point first, supporting detail below in a quieter style:
+   - **Key** — main statement
+     <span class="sub">background, reasons, numbers</span> */
+.md-typeset .sub {
+  display: block;
+  margin-top: 0.3em;
+  padding-left: 0.75em;
+  border-left: 2px solid var(--md-default-fg-color--lightest);
+  font-size: 0.88em;
+  line-height: 1.7;
+  color: var(--md-default-fg-color--light);
+}

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/"/>
+    </url>
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/posts/01-overview/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/posts/01-overview/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/01-overview/"/>
+    </url>
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/posts/02-gridworld-q-learning/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/posts/02-gridworld-q-learning/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/02-gridworld-q-learning/"/>
+    </url>
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/ko/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/"/>
+    </url>
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/ko/posts/01-overview/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/01-overview/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/posts/01-overview/"/>
+    </url>
+    <url>
+        <loc>https://2hyoon0406.github.io/needle-handover-notes/ko/posts/02-gridworld-q-learning/</loc>
+        <lastmod>2026-11-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://2hyoon0406.github.io/needle-handover-notes/ko/posts/02-gridworld-q-learning/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://2hyoon0406.github.io/needle-handover-notes/posts/02-gridworld-q-learning/"/>
+    </url>
+</urlset>
